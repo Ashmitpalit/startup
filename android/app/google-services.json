@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "965407487538",
+    "project_id": "kadam-4d39a",
+    "storage_bucket": "kadam-4d39a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:965407487538:android:c31b7fd6afefc58642ae2b",
+        "android_client_info": {
+          "package_name": "com.example.startup"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "965407487538-msl31mmpo94g4bfkqmdbf4nudhac7dji.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.startup",
+            "certificate_hash": "f9b08e85226fe29b1c4c73ab793592d030750c77"
+          }
+        },
+        {
+          "client_id": "965407487538-erv4mr9eof6g2h1sa36raiobdkpa00f1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAibDinNjtgvU_Eeq3d0Vhb7pmAMaJgEoE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "965407487538-erv4mr9eof6g2h1sa36raiobdkpa00f1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

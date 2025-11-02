@@ -1,0 +1,24 @@
+FEATURES
+(1). 3D skeletal model :- Ek 3D skeletal visualization jo treadmill par chalti insaan ki movement dikhata hai; major joint
+motion capture markers (hip, knee, ankle, shoulder) aur digital overlays se stride length, joint angles, aur gait cycle
+phases highlight kiye gaye hain.
+(2) . Future prediction -. Future prediction in gait analysis refers to using current and past gait data to estimate or
+forecast a person's upcoming movement patterns, walking ability, or recovery outcomes
+(3). Voice coach= It is a real-time auditory feedback system that uses spoken cues, alerts, or sounds to guide a person's
+walking pattern during gait training.
+(4). Instant correction = Instant correction means giving real-time feedback to the patient while walking so they can
+immediately adjust their gait (instead of waiting for later review).
+(5). Future injury heat map= A Future Injury Heat Map is a visual predictive tool that shows which parts of the body
+(joints or muscles) are at higher risk of injury based on gait analysis data.
+(6). Corrective feedback= Corrective feedback means giving specific instructions or cues (voice, visual, or haptic) to
+help a person change their walking pattern during gait training.It focuses on what is wrong and how to fix it.
+(7).gait health score = A Gait Health Score is a numerical value or rating system used to measure walking ability,
+balance, and stability.It helps physiotherapists or doctors quantify gait performance and track improvement. One of
+the most widely used clinical tools is the Berg Balance Scale (BBS).
+(7). Gamification= Gamification means using game-like elements (points, levels, challenges, avatars, rewards) in rehab
+or gait training to make the process engaging, motivating, and fun for patients.
+(8). Dashboard= A dashboard is a visual interface that displays all relevant gait data, progress, and analytics in one
+place for clinicians, therapists, or patients. It turns complex sensor/motion capture data into easy-to-read charts,
+graphs, and metrics
+
+
