@@ -8,6 +8,8 @@ import 'providers/camera_provider.dart';
 import 'providers/tts_provider.dart';
 import 'providers/language_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/badge_provider.dart';
+import 'services/step_counter_service.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -27,6 +29,8 @@ class GaitAnalysisApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => GaitAnalysisProvider()),
         ChangeNotifierProvider(create: (_) => CameraProvider()),
+        ChangeNotifierProvider(create: (_) => BadgeProvider()),
+        ChangeNotifierProvider(create: (_) => StepCounterService()),
         ChangeNotifierProvider(
           create: (_) => LanguageProvider()..loadSavedLanguage(),
         ),

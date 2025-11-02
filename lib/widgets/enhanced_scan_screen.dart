@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +13,8 @@ import '../models/scan_result.dart';
 import '../models/gait_data.dart';
 import '../screens/results_screen.dart';
 import '../providers/gait_analysis_provider.dart';
+import '../providers/badge_provider.dart';
+import '../models/badge.dart';
 import '../l10n/app_localizations.dart';
 
 class EnhancedScanScreen extends StatefulWidget {
@@ -1123,8 +1125,33 @@ class _EnhancedScanScreenState extends State<EnhancedScanScreen>
       ),
     );
 
+    // Get providers for badge checking
+    final gaitProvider = context.read<GaitAnalysisProvider>();
+    final badgeProvider = context.read<BadgeProvider>();
+
+    // Check for improvement before adding result
+    final previousScore = gaitProvider.previousScore;
+
     // Add to provider
-    context.read<GaitAnalysisProvider>().addScanResult(scanResult);
+    gaitProvider.addScanResult(scanResult);
+
+    // Check for gait improvement badges
+    if (previousScore != null) {
+      badgeProvider.checkGaitImprovement(previousScore, healthScore).then((
+        newBadges,
+      ) {
+        if (newBadges.isNotEmpty && mounted) {
+          _showBadgeUnlockedDialog(newBadges);
+        }
+      });
+    }
+
+    // Check for consistency badges
+    badgeProvider.checkScanConsistency().then((newBadges) {
+      if (newBadges.isNotEmpty && mounted) {
+        _showBadgeUnlockedDialog(newBadges);
+      }
+    });
 
     // Navigate to results with transition
     Navigator.pushReplacement(
@@ -1225,6 +1252,41 @@ class _EnhancedScanScreenState extends State<EnhancedScanScreen>
             child: Text(AppLocalizations.of(context).t('ok')),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showBadgeUnlockedDialog(List<Badge> badges) {
+    // Show badge unlock animation/notification
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Text(badges.first.emoji, style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Badge Unlocked!',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    badges.first.name,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: badges.first.color,
+        duration: const Duration(seconds: 3),
       ),
     );
   }

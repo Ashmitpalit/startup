@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -6,6 +6,8 @@ import '../providers/auth_provider.dart';
 import '../providers/gait_analysis_provider.dart';
 import '../providers/language_provider.dart';
 import '../providers/tts_provider.dart';
+import '../providers/badge_provider.dart';
+import '../models/badge.dart';
 import '../widgets/expandable_section.dart';
 import 'auth_screen.dart';
 
@@ -86,6 +88,16 @@ class ProfileScreen extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: _buildStatsSection(gaitProvider, context),
+                    ),
+                  ),
+
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+                  // Badges Section
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _buildBadgesSection(context),
                     ),
                   ),
 
@@ -377,6 +389,130 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildBadgesSection(BuildContext context) {
+    final badgeProvider = context.watch<BadgeProvider>();
+    
+    return ExpandableSection(
+      title: 'Badges',
+      icon: CupertinoIcons.rosette,
+      child: badgeProvider.unlockedBadges.isEmpty
+          ? Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white10, width: 1),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    CupertinoIcons.rosette,
+                    color: Colors.white.withOpacity(0.3),
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No badges yet',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.white60,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Complete scans and reach milestones to unlock badges!',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.4),
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            )
+          : GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.9,
+              ),
+              itemCount: badgeProvider.unlockedBadges.length,
+              itemBuilder: (context, index) {
+                final badge = badgeProvider.unlockedBadges[index];
+                return _buildBadgeCard(badge);
+              },
+            ),
+    ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2);
+  }
+
+  Widget _buildBadgeCard(Badge badge) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            badge.color.withOpacity(0.3),
+            badge.color.withOpacity(0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: badge.color.withOpacity(0.5),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            badge.emoji,
+            style: const TextStyle(fontSize: 32),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            badge.name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _formatBadgeDate(badge.unlockedAt),
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.5),
+              fontSize: 8,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatBadgeDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays == 0) {
+      return 'Today';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 
   Widget _buildHistorySection(

@@ -7,6 +7,7 @@ class GaitAnalysisProvider extends ChangeNotifier {
   bool _isAnalyzing = false;
   double _overallHealthScore = 0.0;
   int _dailySteps = 0;
+  double? _previousScore; // Track previous score for improvement detection
 
   // Getters
   List<ScanResult> get scanHistory => _scanHistory;
@@ -14,11 +15,19 @@ class GaitAnalysisProvider extends ChangeNotifier {
   bool get isAnalyzing => _isAnalyzing;
   double get overallHealthScore => _overallHealthScore;
   int get dailySteps => _dailySteps;
+  double? get previousScore => _previousScore;
 
   // Add new scan result
   void addScanResult(ScanResult result) {
     _scanHistory.insert(0, result); // Add to beginning for recent first
     _currentScan = result;
+    
+    // Check for improvement before updating score
+    if (_previousScore != null) {
+      // This will be handled by badge provider
+    }
+    
+    _previousScore = _overallHealthScore;
     _updateOverallHealthScore();
     _simulateStepsFromScan(); // Simulate steps from scan activity
     notifyListeners();

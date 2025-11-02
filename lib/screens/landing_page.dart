@@ -5,11 +5,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/gait_analysis_provider.dart';
 import '../providers/tts_provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/badge_provider.dart';
+import '../services/step_counter_service.dart';
 import '../widgets/enhanced_scan_screen.dart';
 import 'results_screen.dart';
 import 'profile_screen.dart';
 import '../widgets/minimal_weekly_progress.dart';
 import '../l10n/app_localizations.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
@@ -24,7 +27,130 @@ class _LandingPageState extends State<LandingPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TTSProvider>().initializeTTS();
+      _initializeStepCounter();
     });
+  }
+
+  Future<void> _initializeStepCounter() async {
+    final stepCounter = context.read<StepCounterService>();
+    final gaitProvider = context.read<GaitAnalysisProvider>();
+    final badgeProvider = context.read<BadgeProvider>();
+
+    // Check if permission already granted
+    final hasPermission = await stepCounter.checkPermission();
+    
+    if (!hasPermission) {
+      // Request permission
+      final granted = await stepCounter.requestPermission();
+      if (!granted) {
+        // Permission denied - show dialog or handle gracefully
+        if (mounted) {
+          _showPermissionDialog();
+        }
+        return;
+      }
+    }
+
+    // Start listening to steps
+    stepCounter.startListening();
+
+    // Update gait provider with actual steps
+    stepCounter.addListener(() {
+      final steps = stepCounter.todaySteps;
+      gaitProvider.updateDailySteps(steps);
+
+      // Check for step milestone badges
+      badgeProvider.checkStepMilestones(steps).then((newBadges) {
+        if (newBadges.isNotEmpty && mounted) {
+          _showBadgeUnlockedDialog(newBadges);
+        }
+      });
+    });
+
+    // Initial update
+    gaitProvider.updateDailySteps(stepCounter.todaySteps);
+    badgeProvider.checkStepMilestones(stepCounter.todaySteps);
+  }
+
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF121218),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(CupertinoIcons.exclamationmark_triangle, color: Colors.orange),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Step Counter Permission',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Kadam needs permission to track your steps for accurate activity monitoring and badges. You can enable this in app settings.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Maybe Later', style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await openAppSettings();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6366F1),
+            ),
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBadgeUnlockedDialog(List badges) {
+    // Show badge unlock animation/notification
+    // This can be enhanced with a custom animation widget
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Text(
+              badges.first.emoji,
+              style: const TextStyle(fontSize: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Badge Unlocked!',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    badges.first.name,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: badges.first.color,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   @override
@@ -379,13 +505,21 @@ class _LandingPageState extends State<LandingPage> {
                       ),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                  child: const Icon(
-                    CupertinoIcons.hand_raised,
-                    color: Colors.white,
-                    size: 20,
+                    child: Image.asset(
+                      'asset/logo.png',
+                      width: 20,
+                      height: 20,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          CupertinoIcons.rosette,
+                          color: Colors.white,
+                          size: 20,
+                        );
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
+                  const SizedBox(width: 12),
                 Flexible(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,

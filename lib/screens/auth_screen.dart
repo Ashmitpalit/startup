@@ -69,10 +69,20 @@ class AuthScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          CupertinoIcons.hand_raised,
-                          color: Colors.white,
-                          size: 60,
+                        child: ClipOval(
+                          child: Image.asset(
+                            'asset/logo.png',
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Icon(
+                                CupertinoIcons.rosette,
+                                color: Colors.white,
+                                size: 60,
+                              );
+                            },
+                          ),
                         ),
                       )
                           .animate()
