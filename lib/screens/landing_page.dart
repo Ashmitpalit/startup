@@ -67,6 +67,7 @@ class _LandingPageState extends State<LandingPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // Hero Stats Row
                           Row(
@@ -209,17 +210,19 @@ class _LandingPageState extends State<LandingPage> {
 
                           const SizedBox(height: 16),
 
-                          // Weekly Progress
-                          MinimalWeeklyProgress(
-                            weeklyScores: gaitProvider.scanHistory
-                                .take(7)
-                                .map((s) => s.healthScore)
-                                .toList()
-                                .reversed
-                                .toList(),
-                          ).animate().fadeIn(duration: 700.ms).slideY(begin: 0.2),
+                          // Weekly Progress - only show if we have scans
+                          if (gaitProvider.scanHistory.isNotEmpty)
+                            MinimalWeeklyProgress(
+                              weeklyScores: gaitProvider.scanHistory
+                                  .take(7)
+                                  .map((s) => s.healthScore)
+                                  .toList()
+                                  .reversed
+                                  .toList(),
+                            ).animate().fadeIn(duration: 700.ms).slideY(begin: 0.2),
 
-                          const SizedBox(height: 24),
+                          if (gaitProvider.scanHistory.isNotEmpty)
+                            const SizedBox(height: 24),
 
                           // Action Buttons with Glassmorphism
                           Row(
@@ -245,10 +248,11 @@ class _LandingPageState extends State<LandingPage> {
                             ],
                           ).animate().fadeIn(duration: 800.ms).slideY(begin: 0.2),
 
-                          const SizedBox(height: 24),
+                          // Spacing before stats (only if scans exist, otherwise extra spacing)
+                          SizedBox(height: gaitProvider.scanHistory.isNotEmpty ? 24 : 32),
 
-                          // Quick Stats Grid
-                    if (gaitProvider.scanHistory.isNotEmpty) ...[
+                          // Quick Stats Grid - only show if we have scans
+                          if (gaitProvider.scanHistory.isNotEmpty) ...[
                             Row(
                               children: [
                                 Expanded(
@@ -271,23 +275,28 @@ class _LandingPageState extends State<LandingPage> {
                                 ),
                               ],
                             ).animate().fadeIn(duration: 900.ms).slideY(begin: 0.2),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 20),
                           ],
 
-                          // Recent Scans Section
+                          // Recent Scans Section - only show if we have scans
                           if (gaitProvider.scanHistory.isNotEmpty) ...[
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  AppLocalizations.of(context).t('recent_scans'),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                Flexible(
+                                  child: Text(
+                                    AppLocalizations.of(context).t('recent_scans'),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -299,6 +308,7 @@ class _LandingPageState extends State<LandingPage> {
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
                                         'Swipe',
@@ -323,6 +333,7 @@ class _LandingPageState extends State<LandingPage> {
                               height: 120,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.only(right: 20),
                                 itemCount: gaitProvider.scanHistory.length,
                                 itemBuilder: (context, index) {
                                   final scan = gaitProvider.scanHistory[index];
@@ -332,9 +343,11 @@ class _LandingPageState extends State<LandingPage> {
                                 },
                               ),
                             ),
+                            const SizedBox(height: 32),
+                          ] else ...[
+                            // Extra spacing when no scans
+                            const SizedBox(height: 32),
                           ],
-
-                          const SizedBox(height: 40),
                         ],
                       ),
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/gait_analysis_provider.dart';
@@ -87,7 +88,7 @@ class EnhancedDashboard extends StatelessWidget {
                     child: _buildStatCard(
                       'Total Scans',
                       scanHistory.length.toString(),
-                      Icons.analytics,
+                      CupertinoIcons.chart_bar,
                       Colors.blue,
                     ),
                   ),
@@ -98,7 +99,7 @@ class EnhancedDashboard extends StatelessWidget {
                       scanHistory.isNotEmpty
                           ? scanHistory.first.healthScore.toStringAsFixed(0)
                           : '--',
-                      Icons.trending_up,
+                      CupertinoIcons.arrow_up,
                       Colors.green,
                     ),
                   ),
@@ -118,7 +119,7 @@ class EnhancedDashboard extends StatelessWidget {
                                 .reduce((a, b) => a > b ? a : b)
                                 .toStringAsFixed(0)
                           : '--',
-                      Icons.star,
+                      CupertinoIcons.star_fill,
                       Colors.amber,
                     ),
                   ),
@@ -127,7 +128,7 @@ class EnhancedDashboard extends StatelessWidget {
                     child: _buildStatCard(
                       'Avg Score',
                       overallScore > 0 ? overallScore.toStringAsFixed(0) : '--',
-                      Icons.assessment,
+                      CupertinoIcons.chart_bar_alt_fill,
                       Colors.purple,
                     ),
                   ),
@@ -328,7 +329,7 @@ class EnhancedDashboard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.lightbulb_outline,
+                      CupertinoIcons.lightbulb,
                       color: Colors.amber,
                       size: 16,
                     ),

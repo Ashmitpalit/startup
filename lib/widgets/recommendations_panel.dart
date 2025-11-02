@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class RecommendationsPanel extends StatelessWidget {
@@ -21,7 +22,7 @@ class RecommendationsPanel extends StatelessWidget {
           _buildSection(
             context,
             'Recommendations',
-            Icons.lightbulb_outline,
+            CupertinoIcons.lightbulb,
             Colors.blue,
             recommendations,
           ),
@@ -33,7 +34,7 @@ class RecommendationsPanel extends StatelessWidget {
           _buildSection(
             context,
             'Immediate Corrections',
-            Icons.warning_amber_outlined,
+            CupertinoIcons.exclamationmark_triangle,
             Colors.orange,
             corrections,
           ),

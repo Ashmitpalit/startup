@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter/cupertino.dart';
 import 'dart:math' as math;
 
 class Real3DSkeleton extends StatefulWidget {
@@ -31,7 +31,6 @@ class _Real3DSkeletonState extends State<Real3DSkeleton>
   double _rotationY = 0.0;
   double _rotationZ = 0.0;
 
-  bool _isDragging = false;
   Offset? _lastPanPosition;
   double _zoom = 1.0;
 
@@ -68,7 +67,7 @@ class _Real3DSkeletonState extends State<Real3DSkeleton>
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 450,
+      height: 400,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -88,50 +87,56 @@ class _Real3DSkeletonState extends State<Real3DSkeleton>
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          // 3D Skeleton with heatmap
-          Center(
-            child: GestureDetector(
-              onScaleStart: _onScaleStart,
-              onScaleUpdate: _onScaleUpdate,
-              onScaleEnd: _onScaleEnd,
-              child: AnimatedBuilder(
-                animation: Listenable.merge([
-                  _rotationController,
-                  _pulseController,
-                ]),
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _zoom,
-                    child: CustomPaint(
-                      size: const Size(320, 380),
-                      painter: Real3DSkeletonPainter(
-                        injuryRisk: widget.injuryRisk,
-                        rotationX: _rotationX,
-                        rotationY: _rotationY,
-                        rotationZ: _rotationZ,
-                        pulseAnimation: _pulseController.value,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          children: [
+            // 3D Skeleton with heatmap - properly centered and clipped
+            Center(
+              child: GestureDetector(
+                onScaleStart: _onScaleStart,
+                onScaleUpdate: _onScaleUpdate,
+                onScaleEnd: _onScaleEnd,
+                child: AnimatedBuilder(
+                  animation: Listenable.merge([
+                    _rotationController,
+                    _pulseController,
+                  ]),
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _zoom.clamp(0.6, 1.5), // Limit zoom to prevent overflow
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 350,
+                        child: CustomPaint(
+                          painter: Real3DSkeletonPainter(
+                            injuryRisk: widget.injuryRisk,
+                            rotationX: _rotationX,
+                            rotationY: _rotationY,
+                            rotationZ: _rotationZ,
+                            pulseAnimation: _pulseController.value,
+                          ),
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
-          ),
 
-          // Rotation controls
-          Positioned(top: 15, right: 15, child: _buildRotationControls()),
+            // Rotation controls
+            Positioned(top: 15, right: 15, child: _buildRotationControls()),
 
-          // Heatmap legend
-          Positioned(bottom: 15, left: 15, child: _buildHeatmapLegend()),
+            // Heatmap legend
+            Positioned(bottom: 15, left: 15, child: _buildHeatmapLegend()),
 
-          // Reset button
-          Positioned(top: 15, left: 15, child: _buildResetButton()),
+            // Reset button
+            Positioned(top: 15, left: 15, child: _buildResetButton()),
 
-          // Zoom indicator
-          Positioned(top: 60, right: 15, child: _buildZoomIndicator()),
-        ],
+            // Zoom indicator
+            Positioned(top: 60, right: 15, child: _buildZoomIndicator()),
+          ],
+        ),
       ),
     );
   }
@@ -161,7 +166,7 @@ class _Real3DSkeletonState extends State<Real3DSkeleton>
                     border: Border.all(color: Colors.blue.withOpacity(0.5)),
                   ),
                   child: const Icon(
-                    Icons.keyboard_arrow_left,
+                    CupertinoIcons.chevron_left,
                     color: Colors.blue,
                     size: 16,
                   ),
@@ -187,7 +192,7 @@ class _Real3DSkeletonState extends State<Real3DSkeleton>
                     border: Border.all(color: Colors.blue.withOpacity(0.5)),
                   ),
                   child: const Icon(
-                    Icons.keyboard_arrow_right,
+                    CupertinoIcons.chevron_right,
                     color: Colors.blue,
                     size: 16,
                   ),
@@ -210,7 +215,7 @@ class _Real3DSkeletonState extends State<Real3DSkeleton>
                     border: Border.all(color: Colors.green.withOpacity(0.5)),
                   ),
                   child: const Icon(
-                    Icons.keyboard_arrow_up,
+                    CupertinoIcons.chevron_up,
                     color: Colors.green,
                     size: 16,
                   ),
@@ -236,7 +241,7 @@ class _Real3DSkeletonState extends State<Real3DSkeleton>
                     border: Border.all(color: Colors.green.withOpacity(0.5)),
                   ),
                   child: const Icon(
-                    Icons.keyboard_arrow_down,
+                    CupertinoIcons.chevron_down,
                     color: Colors.green,
                     size: 16,
                   ),
@@ -324,7 +329,7 @@ class _Real3DSkeletonState extends State<Real3DSkeleton>
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white.withOpacity(0.3)),
         ),
-        child: const Icon(Icons.refresh, color: Colors.white, size: 18),
+        child: const Icon(CupertinoIcons.arrow_clockwise, color: Colors.white, size: 18),
       ),
     );
   }
@@ -360,9 +365,9 @@ class _Real3DSkeletonState extends State<Real3DSkeleton>
       _rotationX += delta.dy * 0.01;
     }
 
-    // Handle zoom
+    // Handle zoom (limited to prevent overflow)
     setState(() {
-      _zoom = (_zoom * details.scale).clamp(0.5, 2.0);
+      _zoom = (_zoom * details.scale).clamp(0.6, 1.5);
     });
 
     widget.onRotationChanged?.call(_rotationX, _rotationY, _rotationZ);
@@ -415,21 +420,36 @@ class Real3DSkeletonPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Ensure skeleton is centered and fits within bounds
     final center = Offset(size.width / 2, size.height / 2);
+    
+    // Clip to canvas bounds to prevent overflow
+    canvas.clipRect(Rect.fromLTWH(0, 0, size.width, size.height));
 
     // Draw 3D skeleton with heatmap
     _drawReal3DSkeleton(canvas, center, size);
   }
 
   void _drawReal3DSkeleton(Canvas canvas, Offset center, Size size) {
-    // Define 3D skeleton structure with anatomical detail
-    final bones = _getAnatomicalBones3D(center);
+    // Define 3D skeleton structure with anatomical detail (centered at origin)
+    final bones = _getAnatomicalBones3D(Offset.zero);
 
     // Transform bones based on rotation
     final transformedBones = _transformBones3D(bones);
 
+    // Scale skeleton to fit within bounds (scale down if needed)
+    final maxExtent = 200.0; // Maximum skeleton extent
+    final scale = math.min(size.width, size.height) / (maxExtent * 2.2);
+    
+    // Apply scaling and centering
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.scale(scale);
+    
     // Draw skeleton with heatmap colors
     _drawSkeletonWithHeatmap(canvas, transformedBones);
+    
+    canvas.restore();
   }
 
   List<Map<String, dynamic>> _getAnatomicalBones3D(Offset center) {
@@ -635,22 +655,27 @@ class Real3DSkeletonPainter extends CustomPainter {
         ..strokeWidth = thickness + 2
         ..color = Colors.black.withOpacity(0.3);
 
-      canvas.drawLine(
-        Offset(start['x'], start['y']),
-        Offset(end['x'], end['y']),
-        shadowPaint,
-      );
-
-      canvas.drawLine(
-        Offset(start['x'], start['y']),
-        Offset(end['x'], end['y']),
-        paint,
-      );
+      // Only draw if within reasonable bounds
+      final startOffset = Offset(start['x'], start['y']);
+      final endOffset = Offset(end['x'], end['y']);
+      
+      // Check if line is within bounds (allowing some margin for rotation)
+      if (startOffset.distanceSquared + endOffset.distanceSquared < 40000) {
+        canvas.drawLine(startOffset, endOffset, shadowPaint);
+        canvas.drawLine(startOffset, endOffset, paint);
+      }
     }
   }
 
   void _drawJoint(Canvas canvas, List points, Color color, double risk) {
     for (final point in points) {
+      final pointOffset = Offset(point['x'], point['y']);
+      
+      // Only draw if within reasonable bounds
+      if (pointOffset.distanceSquared > 40000) {
+        continue; // Skip points that are too far from center
+      }
+      
       final radius = point['radius'] * (1.0 + risk * 0.8);
 
       // Add pulse effect for high risk areas
@@ -658,15 +683,15 @@ class Real3DSkeletonPainter extends CustomPainter {
           ? radius * (1.0 + pulseAnimation * 0.3)
           : radius;
 
-      // Draw outer glow for high risk
+      // Draw outer glow for high risk (but smaller to prevent overflow)
       if (risk > 0.5) {
         final glowPaint = Paint()
           ..style = PaintingStyle.fill
           ..color = color.withOpacity(0.3);
 
         canvas.drawCircle(
-          Offset(point['x'], point['y']),
-          pulseRadius * 1.8,
+          pointOffset,
+          (pulseRadius * 1.5).clamp(0.0, 50.0), // Limit glow size
           glowPaint,
         );
       }
@@ -676,7 +701,7 @@ class Real3DSkeletonPainter extends CustomPainter {
         ..style = PaintingStyle.fill
         ..color = color;
 
-      canvas.drawCircle(Offset(point['x'], point['y']), pulseRadius, paint);
+      canvas.drawCircle(pointOffset, pulseRadius.clamp(0, 30), paint);
 
       // Add inner highlight
       final highlightPaint = Paint()
@@ -684,8 +709,8 @@ class Real3DSkeletonPainter extends CustomPainter {
         ..color = Colors.white.withOpacity(0.9);
 
       canvas.drawCircle(
-        Offset(point['x'], point['y']),
-        pulseRadius * 0.3,
+        pointOffset,
+        (pulseRadius * 0.3).clamp(0, 10),
         highlightPaint,
       );
 
@@ -696,8 +721,8 @@ class Real3DSkeletonPainter extends CustomPainter {
         ..color = Colors.white.withOpacity(0.8);
 
       canvas.drawCircle(
-        Offset(point['x'], point['y']),
-        pulseRadius,
+        pointOffset,
+        pulseRadius.clamp(0, 30),
         borderPaint,
       );
     }

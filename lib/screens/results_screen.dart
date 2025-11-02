@@ -313,7 +313,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           // Joint Angles Chart (Expandable)
           ExpandableSection(
             title: 'Joint Angles Analysis',
-            icon: Icons.analytics_rounded,
+            icon: CupertinoIcons.chart_bar,
             child: _buildJointAnglesChartContent(),
           ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
 

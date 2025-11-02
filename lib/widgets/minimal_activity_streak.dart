@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class MinimalActivityStreak extends StatelessWidget {
@@ -27,7 +28,7 @@ class MinimalActivityStreak extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              Icons.local_fire_department_rounded,
+              CupertinoIcons.flame,
               color: Color(0xFFF59E0B),
               size: 24,
             ),

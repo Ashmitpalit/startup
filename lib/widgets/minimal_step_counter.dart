@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class MinimalStepCounter extends StatefulWidget {
@@ -46,7 +47,7 @@ class _MinimalStepCounterState extends State<MinimalStepCounter> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
-                        Icons.directions_walk_rounded,
+                        CupertinoIcons.hand_raised,
                         color: Color(0xFF6366F1),
                         size: 24,
                       ),

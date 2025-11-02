@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class InteractiveHealthCard extends StatefulWidget {
@@ -31,7 +32,7 @@ class _InteractiveHealthCardState extends State<InteractiveHealthCard> {
         child: Column(
           children: [
             const Icon(
-              Icons.analytics_outlined,
+              CupertinoIcons.chart_bar,
               color: Colors.white38,
               size: 48,
             ),
@@ -114,7 +115,7 @@ class _InteractiveHealthCardState extends State<InteractiveHealthCard> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    _isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                    _isExpanded ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
                     color: _getScoreColor(widget.score),
                     size: 24,
                   ),

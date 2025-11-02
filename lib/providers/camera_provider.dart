@@ -161,8 +161,9 @@ class CameraProvider extends ChangeNotifier {
 
       debugPrint('Processing video: ${videoFile.path}, duration: ${duration.inSeconds}s');
       
-      // Extract frames at ~30fps (sample every 33ms = ~30fps)
-      final totalFrames = (duration.inSeconds * 30).clamp(30, 900); // Min 1s (30 frames), max 30s (900 frames)
+      // Extract frames at ~15fps for video (less intensive than live)
+      // This balances processing speed with pose detection quality
+      final totalFrames = (duration.inSeconds * 15).clamp(15, 450); // Min 1s (15 frames), max 30s (450 frames)
       final frameIntervalMs = (duration.inMilliseconds / totalFrames).round();
       
       int processedFrames = 0;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -161,7 +162,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(
-                Icons.arrow_back,
+                CupertinoIcons.arrow_left,
                 color: Colors.white,
                 size: 24,
               ),
@@ -194,7 +195,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             child: Column(
               children: [
                 Icon(
-                  Icons.person,
+                  CupertinoIcons.person_fill,
                   color: Colors.white,
                   size: 48,
                 ).animate().scale(duration: 1.seconds),
@@ -267,7 +268,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.play_arrow, color: Colors.white, size: 28),
+            const Icon(CupertinoIcons.play_fill, color: Colors.white, size: 28),
             const SizedBox(width: 8),
             Text(
               'Start Scan',
@@ -301,7 +302,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.stop, color: Colors.white, size: 28),
+            const Icon(CupertinoIcons.stop_fill, color: Colors.white, size: 28),
             const SizedBox(width: 8),
             Text(
               'Stop Scan',

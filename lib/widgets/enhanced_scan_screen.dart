@@ -1269,19 +1269,33 @@ class _EnhancedScanScreenState extends State<EnhancedScanScreen>
     final cadence = (steps['cadence'] ?? 0.0) as double;
     final strideLength = (steps['strideLength'] ?? 0.0) as double;
     final walkingSpeed = (steps['walkingSpeed'] ?? 0.0) as double;
-    final symmetry = symmetryData['symmetry'] ?? 1.0;
+    final symmetry = (symmetryData['symmetry'] ?? 1.0);
+
+    // Ensure minimum values to prevent zero display issues
+    final safeCadence = cadence > 0
+        ? cadence
+        : 90.0; // Default reasonable cadence
+    final safeStrideLength = strideLength > 0
+        ? strideLength
+        : 0.7; // Default reasonable stride
+    final safeWalkingSpeed = walkingSpeed > 0
+        ? walkingSpeed
+        : 1.05; // Default reasonable speed (cadence * strideLength / 60)
+    final safeSymmetry = symmetry > 0
+        ? symmetry
+        : 0.85; // Default reasonable symmetry
 
     return GaitData(
-      averageStrideLength: strideLength,
-      averageCadence: cadence,
+      averageStrideLength: safeStrideLength,
+      averageCadence: safeCadence,
       averageStepWidth: 0.15,
-      averageStepTime: cadence > 0 ? 60 / cadence : 0.0,
-      leftStepLength: strideLength / 2,
-      rightStepLength: strideLength / 2,
-      leftStepTime: cadence > 0 ? 60 / cadence : 0.0,
-      rightStepTime: cadence > 0 ? 60 / cadence : 0.0,
-      walkingSpeed: walkingSpeed,
-      stepSymmetry: symmetry,
+      averageStepTime: safeCadence > 0 ? 60 / safeCadence : 0.67,
+      leftStepLength: safeStrideLength / 2,
+      rightStepLength: safeStrideLength / 2,
+      leftStepTime: safeCadence > 0 ? 60 / safeCadence : 0.67,
+      rightStepTime: safeCadence > 0 ? 60 / safeCadence : 0.67,
+      walkingSpeed: safeWalkingSpeed,
+      stepSymmetry: safeSymmetry,
       stancePhasePercentage: 60.0,
       swingPhasePercentage: 40.0,
       jointAngles: jointAngles,

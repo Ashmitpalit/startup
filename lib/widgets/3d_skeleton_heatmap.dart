@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
@@ -162,7 +163,7 @@ class _SkeletonHeatmap3DState extends State<SkeletonHeatmap3D>
                     border: Border.all(color: Colors.blue.withOpacity(0.5)),
                   ),
                   child: const Icon(
-                    Icons.rotate_left,
+                    CupertinoIcons.rotate_left,
                     color: Colors.blue,
                     size: 16,
                   ),
@@ -188,7 +189,7 @@ class _SkeletonHeatmap3DState extends State<SkeletonHeatmap3D>
                     border: Border.all(color: Colors.blue.withOpacity(0.5)),
                   ),
                   child: const Icon(
-                    Icons.rotate_right,
+                    CupertinoIcons.rotate_right,
                     color: Colors.blue,
                     size: 16,
                   ),
@@ -211,7 +212,7 @@ class _SkeletonHeatmap3DState extends State<SkeletonHeatmap3D>
                     border: Border.all(color: Colors.green.withOpacity(0.5)),
                   ),
                   child: const Icon(
-                    Icons.rotate_left,
+                    CupertinoIcons.rotate_left,
                     color: Colors.green,
                     size: 16,
                   ),
@@ -237,7 +238,7 @@ class _SkeletonHeatmap3DState extends State<SkeletonHeatmap3D>
                     border: Border.all(color: Colors.green.withOpacity(0.5)),
                   ),
                   child: const Icon(
-                    Icons.rotate_right,
+                    CupertinoIcons.rotate_right,
                     color: Colors.green,
                     size: 16,
                   ),
@@ -325,7 +326,7 @@ class _SkeletonHeatmap3DState extends State<SkeletonHeatmap3D>
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.white.withOpacity(0.3)),
         ),
-        child: const Icon(Icons.refresh, color: Colors.white, size: 18),
+        child: const Icon(CupertinoIcons.arrow_clockwise, color: Colors.white, size: 18),
       ),
     );
   }

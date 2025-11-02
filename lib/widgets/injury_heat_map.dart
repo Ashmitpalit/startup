@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class InjuryHeatMap extends StatelessWidget {
@@ -59,7 +60,7 @@ class InjuryHeatMap extends StatelessWidget {
                 child: Column(
                   children: [
                     Icon(
-                      Icons.person,
+                      CupertinoIcons.person_fill,
                       size: 100,
                       color: Colors.white.withOpacity(0.3),
                     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/gait_data.dart';
 
@@ -53,7 +54,7 @@ class GaitMetricsPanel extends StatelessWidget {
                 context,
                 'Walking Speed',
                 '${gaitData.walkingSpeed.toStringAsFixed(2)} m/s',
-                Icons.speed,
+                CupertinoIcons.speedometer,
                 _getSpeedStatus(gaitData.walkingSpeed),
               ),
             ),
@@ -63,7 +64,7 @@ class GaitMetricsPanel extends StatelessWidget {
                 context,
                 'Cadence',
                 '${gaitData.averageCadence.toStringAsFixed(0)} steps/min',
-                Icons.timeline,
+                CupertinoIcons.chart_bar,
                 _getCadenceStatus(gaitData.averageCadence),
               ),
             ),
@@ -80,7 +81,7 @@ class GaitMetricsPanel extends StatelessWidget {
                 context,
                 'Stride Length',
                 '${gaitData.averageStrideLength.toStringAsFixed(2)} m',
-                Icons.straighten,
+                CupertinoIcons.arrow_up_down,
                 _getStrideStatus(gaitData.averageStrideLength),
               ),
             ),
@@ -90,7 +91,7 @@ class GaitMetricsPanel extends StatelessWidget {
                 context,
                 'Step Width',
                 '${gaitData.averageStepWidth.toStringAsFixed(2)} m',
-                Icons.open_in_full,
+                CupertinoIcons.arrow_left_right,
                 _getStepWidthStatus(gaitData.averageStepWidth),
               ),
             ),
@@ -99,7 +100,7 @@ class GaitMetricsPanel extends StatelessWidget {
 
         const SizedBox(height: 12),
 
-        // Third row
+        // Third row - fixed to prevent overflow
         Row(
           children: [
             Expanded(
@@ -107,7 +108,7 @@ class GaitMetricsPanel extends StatelessWidget {
                 context,
                 'Symmetry',
                 '${(gaitData.stepSymmetry * 100).toStringAsFixed(1)}%',
-                Icons.balance,
+                CupertinoIcons.equal,
                 _getSymmetryStatus(gaitData.stepSymmetry),
               ),
             ),
@@ -117,7 +118,7 @@ class GaitMetricsPanel extends StatelessWidget {
                 context,
                 'Stance Phase',
                 '${gaitData.stancePhasePercentage.toStringAsFixed(1)}%',
-                Icons.pause_circle,
+                CupertinoIcons.pause_fill,
                 _getStancePhaseStatus(gaitData.stancePhasePercentage),
               ),
             ),
@@ -135,44 +136,64 @@ class GaitMetricsPanel extends StatelessWidget {
     String status,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white70, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+          Icon(icon, color: Colors.white70, size: 20),
+          const SizedBox(height: 6),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.white60),
-            textAlign: TextAlign.center,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(
+                color: Colors.white60,
+                fontSize: 10,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
             decoration: BoxDecoration(
               color: _getStatusColor(status).withOpacity(0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(
-              status,
-              style: TextStyle(
-                color: _getStatusColor(status),
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                status,
+                style: TextStyle(
+                  color: _getStatusColor(status),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),

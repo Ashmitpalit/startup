@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -176,10 +177,10 @@ class ProgressChart extends StatelessWidget {
       children: [
         Icon(
           trend > 0
-              ? Icons.trending_up
+              ? CupertinoIcons.arrow_up
               : trend < 0
-              ? Icons.trending_down
-              : Icons.trending_flat,
+              ? CupertinoIcons.arrow_down
+              : CupertinoIcons.minus,
           color: trend > 0
               ? Colors.green
               : trend < 0
