@@ -329,79 +329,139 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Widget _buildJointAnglesChartContent() {
-    return SizedBox(
-      height: 200,
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          maxY: 30,
-          barTouchData: BarTouchData(enabled: false),
-          titlesData: FlTitlesData(
-            show: true,
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  return Text(
-                    widget
-                        .scanResult
-                        .gaitData
-                        .jointAngles[value.toInt()]
-                        .jointName
-                        .replaceAll('_', ' ')
-                        .toUpperCase(),
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 10,
-                    ),
-                  );
-                },
-              ),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  return Text(
-                    '${value.toInt()}°',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 10,
-                    ),
-                  );
-                },
-              ),
+    final jointAngles = widget.scanResult.gaitData.jointAngles;
+    
+    // Validate and filter out invalid angles
+    final validJoints = <int, dynamic>{};
+    double maxAngle = 30.0; // Default max
+    
+    for (int i = 0; i < jointAngles.length; i++) {
+      final joint = jointAngles[i];
+      final angle = joint.angle;
+      
+      // Validate angle - check for NaN, Infinity, and reasonable range
+      if (!angle.isNaN && !angle.isInfinite && angle >= 0 && angle <= 180) {
+        validJoints[i] = joint;
+        if (angle > maxAngle) {
+          maxAngle = (angle * 1.2).clamp(30.0, 180.0); // Add 20% padding, clamp to 180
+        }
+      }
+    }
+    
+    if (validJoints.isEmpty) {
+      return Container(
+        height: 200,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            'No valid joint angle data available',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.6),
+              fontSize: 14,
             ),
           ),
-          borderData: FlBorderData(show: false),
-          barGroups: widget.scanResult.gaitData.jointAngles
-              .asMap()
-              .entries
-              .map((entry) {
-                final joint = entry.value;
-                return BarChartGroupData(
-                  x: entry.key,
-                  barRods: [
-                    BarChartRodData(
-                      toY: joint.angle,
-                      color: joint.isOutOfRange()
-                          ? Colors.red
-                          : Colors.green,
-                      width: 20,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(4),
+        ),
+      );
+    }
+    
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        height: 200,
+        child: BarChart(
+          BarChartData(
+            alignment: BarChartAlignment.spaceAround,
+            maxY: maxAngle,
+            minY: 0,
+            barTouchData: BarTouchData(enabled: false),
+            titlesData: FlTitlesData(
+              show: true,
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    final index = value.toInt();
+                    if (index < 0 || index >= jointAngles.length || !validJoints.containsKey(index)) {
+                      return const SizedBox.shrink();
+                    }
+                    return Text(
+                      jointAngles[index]
+                          .jointName
+                          .replaceAll('_', ' ')
+                          .toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
                       ),
-                    ),
-                  ],
+                    );
+                  },
+                ),
+              ),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  reservedSize: 40,
+                  getTitlesWidget: (value, meta) {
+                    final intVal = value.toInt();
+                    if (intVal < 0 || intVal > maxAngle.toInt()) {
+                      return const SizedBox.shrink();
+                    }
+                    return Text(
+                      '$intVal°',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            borderData: FlBorderData(show: false),
+            gridData: FlGridData(
+              show: true,
+              drawVerticalLine: false,
+              horizontalInterval: maxAngle / 6,
+              getDrawingHorizontalLine: (value) {
+                return FlLine(
+                  color: Colors.white.withOpacity(0.1),
+                  strokeWidth: 1,
                 );
-              })
-              .toList(),
+              },
+            ),
+            barGroups: validJoints.entries
+                .map((entry) {
+                  final joint = entry.value;
+                  final angle = joint.angle.clamp(0.0, maxAngle);
+                  
+                  return BarChartGroupData(
+                    x: entry.key,
+                    barRods: [
+                      BarChartRodData(
+                        toY: angle,
+                        color: joint.isOutOfRange()
+                            ? Colors.red
+                            : Colors.green,
+                        width: 20,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(4),
+                        ),
+                      ),
+                    ],
+                  );
+                })
+                .toList(),
+          ),
         ),
       ),
     );

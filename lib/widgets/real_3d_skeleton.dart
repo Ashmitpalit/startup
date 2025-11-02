@@ -596,13 +596,25 @@ class Real3DSkeletonPainter extends CustomPainter {
 
         // Apply perspective projection
         double perspective = 300.0;
-        double scale = perspective / (perspective + z2);
+        // Prevent division by zero and extreme values
+        final depth = z2.clamp(-perspective * 0.9, perspective * 2.0);
+        double scale = perspective / (perspective + depth);
+        
+        // Clamp scale to prevent extreme zoom
+        scale = scale.clamp(0.1, 5.0);
+
+        final scaledX = x3 * scale;
+        final scaledY = y3 * scale;
+        
+        // Clamp final coordinates to prevent overflow
+        final finalX = scaledX.clamp(-500.0, 500.0);
+        final finalY = scaledY.clamp(-500.0, 500.0);
 
         return {
-          'x': x3 * scale,
-          'y': y3 * scale,
-          'z': z2,
-          'radius': (point['radius'] as double) * scale,
+          'x': finalX,
+          'y': finalY,
+          'z': depth,
+          'radius': ((point['radius'] as double?) ?? 5.0) * scale,
         };
       }).toList();
 
@@ -639,49 +651,86 @@ class Real3DSkeletonPainter extends CustomPainter {
       final start = points[i];
       final end = points[i + 1];
 
+      // Validate coordinates - check for NaN, Infinity, or extreme values
+      final startX = start['x'] as double;
+      final startY = start['y'] as double;
+      final endX = end['x'] as double;
+      final endY = end['y'] as double;
+
+      // Skip if coordinates are invalid
+      if (startX.isNaN || startX.isInfinite || startY.isNaN || startY.isInfinite ||
+          endX.isNaN || endX.isInfinite || endY.isNaN || endY.isInfinite) {
+        continue;
+      }
+
+      // Check bounds more strictly - only draw if both points are within reasonable range
+      const maxDistance = 200.0; // Maximum distance from center
+      final startDistance = math.sqrt(startX * startX + startY * startY);
+      final endDistance = math.sqrt(endX * endX + endY * endY);
+
+      // Skip if either point is too far from center
+      if (startDistance > maxDistance || endDistance > maxDistance) {
+        continue;
+      }
+
       // Calculate bone thickness based on risk
       final thickness =
-          (start['radius'] + end['radius']) / 2 * (1.0 + risk * 0.5);
+          ((start['radius'] ?? 5.0) + (end['radius'] ?? 5.0)) / 2 * (1.0 + risk * 0.5);
+
+      // Clamp thickness to reasonable values
+      final clampedThickness = thickness.clamp(1.0, 20.0);
 
       // Draw bone with gradient effect
       final paint = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = thickness
+        ..strokeWidth = clampedThickness
         ..color = color.withOpacity(0.8);
 
       // Add shadow for depth
       final shadowPaint = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = thickness + 2
+        ..strokeWidth = clampedThickness + 2
         ..color = Colors.black.withOpacity(0.3);
 
-      // Only draw if within reasonable bounds
-      final startOffset = Offset(start['x'], start['y']);
-      final endOffset = Offset(end['x'], end['y']);
-      
-      // Check if line is within bounds (allowing some margin for rotation)
-      if (startOffset.distanceSquared + endOffset.distanceSquared < 40000) {
-        canvas.drawLine(startOffset, endOffset, shadowPaint);
-        canvas.drawLine(startOffset, endOffset, paint);
-      }
+      final startOffset = Offset(startX, startY);
+      final endOffset = Offset(endX, endY);
+
+      // Draw the line
+      canvas.drawLine(startOffset, endOffset, shadowPaint);
+      canvas.drawLine(startOffset, endOffset, paint);
     }
   }
 
   void _drawJoint(Canvas canvas, List points, Color color, double risk) {
     for (final point in points) {
-      final pointOffset = Offset(point['x'], point['y']);
-      
-      // Only draw if within reasonable bounds
-      if (pointOffset.distanceSquared > 40000) {
-        continue; // Skip points that are too far from center
+      final pointX = point['x'] as double;
+      final pointY = point['y'] as double;
+
+      // Validate coordinates - check for NaN, Infinity, or extreme values
+      if (pointX.isNaN || pointX.isInfinite || pointY.isNaN || pointY.isInfinite) {
+        continue;
       }
+
+      // Check bounds more strictly
+      const maxDistance = 200.0; // Maximum distance from center
+      final distance = math.sqrt(pointX * pointX + pointY * pointY);
       
-      final radius = point['radius'] * (1.0 + risk * 0.8);
+      // Skip if point is too far from center
+      if (distance > maxDistance) {
+        continue;
+      }
+
+      final pointOffset = Offset(pointX, pointY);
+      
+      final radius = (point['radius'] ?? 5.0) * (1.0 + risk * 0.8);
 
       // Add pulse effect for high risk areas
       final pulseRadius = risk > 0.6
           ? radius * (1.0 + pulseAnimation * 0.3)
           : radius;
+
+      // Clamp pulse radius to prevent overflow
+      final clampedPulseRadius = pulseRadius.clamp(0.0, 30.0);
 
       // Draw outer glow for high risk (but smaller to prevent overflow)
       if (risk > 0.5) {
@@ -691,7 +740,7 @@ class Real3DSkeletonPainter extends CustomPainter {
 
         canvas.drawCircle(
           pointOffset,
-          (pulseRadius * 1.5).clamp(0.0, 50.0), // Limit glow size
+          (clampedPulseRadius * 1.5).clamp(0.0, 50.0), // Limit glow size
           glowPaint,
         );
       }
@@ -701,7 +750,7 @@ class Real3DSkeletonPainter extends CustomPainter {
         ..style = PaintingStyle.fill
         ..color = color;
 
-      canvas.drawCircle(pointOffset, pulseRadius.clamp(0, 30), paint);
+      canvas.drawCircle(pointOffset, clampedPulseRadius, paint);
 
       // Add inner highlight
       final highlightPaint = Paint()
@@ -710,7 +759,7 @@ class Real3DSkeletonPainter extends CustomPainter {
 
       canvas.drawCircle(
         pointOffset,
-        (pulseRadius * 0.3).clamp(0, 10),
+        (clampedPulseRadius * 0.3).clamp(0.0, 10.0),
         highlightPaint,
       );
 
@@ -722,7 +771,7 @@ class Real3DSkeletonPainter extends CustomPainter {
 
       canvas.drawCircle(
         pointOffset,
-        pulseRadius.clamp(0, 30),
+        clampedPulseRadius,
         borderPaint,
       );
     }

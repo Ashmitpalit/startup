@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import 'dart:async';
 import '../providers/camera_provider.dart';
 import '../providers/tts_provider.dart';
 import '../widgets/enhanced_feedback_panel.dart';
@@ -35,6 +36,9 @@ class _EnhancedScanScreenState extends State<EnhancedScanScreen>
   AnimationStatusListener? _scanStatusListener;
   ScanMode _scanMode = ScanMode.camera;
   File? _selectedVideoFile;
+  Timer? _scanQualityTimer;
+  int _warningCount = 0;
+  String? _lastWarningType;
 
   @override
   void initState() {
@@ -78,6 +82,7 @@ class _EnhancedScanScreenState extends State<EnhancedScanScreen>
       _scanController.removeStatusListener(_scanStatusListener!);
     }
 
+    _scanQualityTimer?.cancel();
     _pulseController.dispose();
     _scanController.dispose();
     _progressController.dispose();
@@ -754,6 +759,10 @@ class _EnhancedScanScreenState extends State<EnhancedScanScreen>
   }
 
   void _startScan(CameraProvider cameraProvider) {
+    // Reset warning state
+    _warningCount = 0;
+    _lastWarningType = null;
+
     // Start TTS announcement
     context.read<TTSProvider>().speakScanStart();
 
@@ -776,9 +785,24 @@ class _EnhancedScanScreenState extends State<EnhancedScanScreen>
       }
     };
     _scanController.addStatusListener(_scanStatusListener!);
+
+    // Start monitoring scan quality every 3 seconds
+    _scanQualityTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (!cameraProvider.isScanning || !mounted) {
+        timer.cancel();
+        return;
+      }
+
+      final qualityIssue = cameraProvider.checkScanQuality();
+      if (qualityIssue != null && qualityIssue != _lastWarningType) {
+        _handleScanQualityIssue(qualityIssue, cameraProvider);
+      }
+    });
   }
 
   void _stopScan(CameraProvider cameraProvider) {
+    _scanQualityTimer?.cancel();
+
     // Remove status listener to prevent unwanted callbacks
     if (_scanStatusListener != null) {
       _scanController.removeStatusListener(_scanStatusListener!);
@@ -793,6 +817,8 @@ class _EnhancedScanScreenState extends State<EnhancedScanScreen>
 
   void _cancelScan(CameraProvider cameraProvider) {
     debugPrint('_cancelScan called');
+
+    _scanQualityTimer?.cancel();
 
     // Remove status listener to prevent unwanted callbacks
     if (_scanStatusListener != null) {
@@ -810,6 +836,194 @@ class _EnhancedScanScreenState extends State<EnhancedScanScreen>
     // Don't speak on cancel - just exit
     if (mounted) {
       Navigator.of(context).pop();
+    }
+  }
+
+  void _handleScanQualityIssue(
+    String issueType,
+    CameraProvider cameraProvider,
+  ) {
+    _lastWarningType = issueType;
+    _warningCount++;
+
+    String title;
+    String message;
+    String tips;
+
+    switch (issueType) {
+      case 'no_person_detected':
+        title = 'No Person Detected';
+        message =
+            'Unable to detect a person in the frame. Make sure you are fully visible in front of the camera.';
+        tips =
+            '• Stand fully in the camera frame\n• Ensure good lighting\n• Face the camera directly\n• Stand 2-3 meters away';
+        break;
+      case 'person_lost':
+        title = 'Person Out of Frame';
+        message =
+            'Lost track of you. Please stay in the camera frame and ensure good lighting.';
+        tips =
+            '• Stay within the camera view\n• Don\'t move too far from camera\n• Ensure consistent lighting\n• Walk in a straight line';
+        break;
+      case 'not_walking':
+        title = 'No Movement Detected';
+        message =
+            'You appear to be stationary. Please start walking naturally for accurate gait analysis.';
+        tips =
+            '• Start walking forward naturally\n• Maintain a steady pace\n• Walk in a straight line\n• Don\'t stop or sit down';
+        break;
+      case 'poor_conditions':
+        title = 'Poor Scanning Conditions';
+        message =
+            'Detection is limited. Please improve lighting and ensure clear visibility.';
+        tips =
+            '• Move to a well-lit area\n• Ensure camera has clear view\n• Remove obstructions\n• Face a light source';
+        break;
+      default:
+        return;
+    }
+
+    // Show warning dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF121218),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                _warningCount >= 2
+                    ? CupertinoIcons.exclamationmark_triangle_fill
+                    : CupertinoIcons.info,
+                color: _warningCount >= 2 ? Colors.orange : Colors.blue,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                message,
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0B0B0F),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Quick Tips:',
+                      style: TextStyle(
+                        color: Color(0xFF6366F1),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      tips,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (_warningCount >= 2) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        CupertinoIcons.exclamationmark_triangle,
+                        color: Colors.orange,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Scan will be cancelled if conditions don\'t improve.',
+                          style: TextStyle(
+                            color: Colors.orange.withOpacity(0.9),
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            if (_warningCount >= 2)
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _cancelScan(cameraProvider);
+                },
+                child: const Text(
+                  'Cancel Scan',
+                  style: TextStyle(color: Colors.white60),
+                ),
+              ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Give user time to fix the issue before next check
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6366F1),
+              ),
+              child: Text(_warningCount >= 2 ? 'Try Again' : 'OK'),
+            ),
+          ],
+        ),
+      );
+
+      // Auto-cancel after 3 warnings
+      if (_warningCount >= 3) {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && Navigator.canPop(context)) {
+            Navigator.of(context).pop(); // Close warning dialog
+            _cancelScan(cameraProvider);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Scan cancelled due to poor conditions'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        });
+      }
     }
   }
 

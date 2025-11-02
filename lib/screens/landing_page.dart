@@ -8,8 +8,8 @@ import '../providers/auth_provider.dart';
 import '../providers/badge_provider.dart';
 import '../services/step_counter_service.dart';
 import '../widgets/enhanced_scan_screen.dart';
-import 'results_screen.dart';
 import 'profile_screen.dart';
+import 'scan_history_screen.dart';
 import '../widgets/minimal_weekly_progress.dart';
 import '../l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -1025,22 +1025,24 @@ class _LandingPageState extends State<LandingPage> {
 
   void _navigateToResults(BuildContext context) {
     final gaitProvider = context.read<GaitAnalysisProvider>();
-    if (gaitProvider.currentScan != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              ResultsScreen(scanResult: gaitProvider.currentScan!),
-        ),
-      );
-    } else {
+    
+    if (gaitProvider.scanHistory.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context).t('no_scan_data')),
           backgroundColor: Colors.orange,
         ),
       );
+      return;
     }
+    
+    // Navigate to scan history screen where user can see all scans and tap to view details
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ScanHistoryScreen(),
+      ),
+    );
   }
 }
 
